@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "hexterm"
+version = "0.1.0"
+description = "Hex Board Game on Terminal"
+authors = ["BedirT <bedirtpkn@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.dev-dependencies]
+black = "^24.2.0"
+flake8 = "^7.0.0"
+isort = "^5.13.2"
+
+[tool.black]
+line-length = 100
+exclude = '.venv/*'
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
