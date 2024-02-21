@@ -17,10 +17,12 @@ Here's a quick look at the game in action:
 
 - [Features](#features)
 - [Roadmap](#roadmap)
-- [Installation (Or Not)](#installation-or-not)
-  - [Installation for Development](#installation-for-development)
 - [Usage](#usage)
+  - [Download and Play](#download-and-play)
+  - [Running from Source](#running-from-source)
 - [Controls](#controls)
+- [Installation](#installation)
+  - [Installation for Development](#installation-for-development)
 - [Contributing](#contributing)
 - [License](#license)
 - [Sources](#sources)
@@ -39,7 +41,38 @@ Here's a quick look at the game in action:
 - [ ] Game history and undo moves support.
 - [ ] Network play support.
 
-## Installation (Or Not)
+## Usage
+
+### Download and Play
+
+For those who prefer not to install from source or do not have Python installed, you can directly download the game's executable for your operating system in the [latest release](https://github.com/BedirT/HexTerm/releases), and you're ready to start playing Hex directly from your command line. No additional installation or setup required!
+
+#### Possible Permissions Issue
+
+After downloading, you may need to grant execution permissions to the file before running it (mainly for macOS and Linux). You can do this by running the following commands in your terminal (replace `hexterm_1.0.0_mac` with the name of the file you downloaded):
+
+- **macOS and Linux**:
+  ```bash
+  chmod +x hexterm_1.0.0_mac
+  ./hexterm_1.0.0_mac
+
+Enjoy the game!
+
+### Running from Source
+
+To start the game, simply run the following command:
+
+```bash
+python hexterm.py
+```
+
+## Controls
+
+- Use the arrow keys to navigate the board.
+- Press `Enter` or `Space` to place a piece on the selected cell.
+- Press `q` to quit the game at any time.
+
+## Installation
 
 Hexterm is built to have minimal dependencies. Currently the game requires no external libraries, and can be run with Python [Python 3.10](https://www.python.org/downloads/) or higher.
 
@@ -69,20 +102,6 @@ poetry install
 ```
 
 You are ready to start contributing to Hexterm!
-
-## Usage
-
-To start the game, simply run the following command:
-
-```bash
-python hexterm.py
-```
-
-## Controls
-
-- Use the arrow keys to navigate the board.
-- Press `Enter` or `Space` to place a piece on the selected cell.
-- Press `q` to quit the game at any time.
 
 ## Contributing
 
