@@ -44,31 +44,6 @@ class HexGame:
 
         self.reset()
 
-    def action_repr_to_row_col(self, action: str) -> Tuple[int, int]:
-        """Converts the string representation to row and column indices.
-
-        Args:
-            action (str): String representation of the action.
-
-        Returns:
-            tuple: Row and column indices.
-        """
-        col = ord(action[0].upper()) - 65
-        row = int(action[1:]) - 1
-        return row, col
-
-    def action_index_to_repr(self, action: int) -> str:
-        """Converts the action to a string representation.
-
-        Args:
-            action (int): The action to convert.
-
-        Returns:
-            str: The string representation of the action.
-        """
-        row, col = self.action_index_to_row_col(action)
-        return f"{chr(col + 65)}{row + 1}"
-
     def row_col_to_action_index(self, row: int, col: int) -> int:
         """Converts the row and column indices to an action index.
 
@@ -101,7 +76,7 @@ class HexGame:
         Returns:
             bool: True if the cell is empty, False otherwise.
         """
-        return self.state[index] == STATE_EMPTY
+        return self.board[index] == STATE_EMPTY
 
     def step(self, action: int) -> Tuple[np.ndarray, int, bool, dict]:
         """Takes a step in the environment.
@@ -113,9 +88,8 @@ class HexGame:
             Tuple[np.ndarray, float, bool, dict]: The next state, the reward, whether the game is
                 done, and additional info.
         """
-        action_repr = self.action_index_to_repr(action)
         if self.is_valid(action):
-            self._update_game_state(action, action_repr)
+            self._update_game_state(action)
             self.done, path = self.is_terminal(self.current_player)
             if self.done:
                 self.winner = self.current_player
@@ -126,25 +100,24 @@ class HexGame:
 
     def reset(self) -> None:
         """Resets the game."""
-        self.state = np.zeros(self.num_rows * self.num_cols, dtype=int) # only the board
+        self.board = np.zeros(self.num_rows * self.num_cols, dtype=int) # only the board
 
         self.current_player = 1
-        self.history = []
+        self.history = ""
 
         self.done = False
         self.winner = None
 
         return self.get_info_state()
 
-    def _update_game_state(self, action: int, action_repr: str) -> None:
+    def _update_game_state(self, action: int) -> None:
         """Updates the game state after a valid move is made.
 
         Args:
             action (int): The action to take.
-            action_repr (str): The string representation of the action.
         """
-        self.state[action] = self.current_player
-        self.history.append(action_repr)
+        self.board[action] = self.current_player
+        self.history += f"{action},"
 
     def get_opponent(self, player: int) -> int:
         """Returns the opponent of the specified player.
@@ -161,17 +134,26 @@ class HexGame:
         """Updates the current player."""
         self.current_player = self.get_opponent(self.current_player)
 
-    def get_info_state(self, player: int = -1) -> list:
-        """Returns the information state."""
-        return [list(self.state), self.current_player]
+    def get_info_state(self, player: int = -1) -> np.ndarray:
+        """Returns the information state.
 
-    def history_vector(self) -> list:
+        We are using information state naming so that we can unify the interface with darkhex
+        implementation as well.
+
+        Args:
+            player (int): The player index. If not specified, the current player is used.
+
+        Returns:
+            np.ndarray: The information state. The first element is the board, and the rest are the
+                history vector.
+        """
+        if player == -1:
+            player = self.current_player
+        return np.concatenate((self.board, self.history_vector()))
+
+    def history_vector(self) -> np.ndarray:
         """Returns the vectorized version of the history."""
-        v = []
-        for a in self.history:
-            row, col = self.action_repr_to_row_col(a)
-            v.append(self.row_col_to_action_index(row, col))
-        return v
+        return np.array([int(a) for a in self.history.split(",") if a])
 
     def is_valid(self, action: int) -> bool:
         """Checks if the action is a valid move.
@@ -182,9 +164,7 @@ class HexGame:
         Returns:
             bool: True if the move is valid, False otherwise.
         """
-        row, col = self.action_index_to_row_col(action)
-        return 0 <= row < self.num_rows and \
-            0 <= col < self.num_cols and self.state[action] == STATE_EMPTY
+        return len(self.board) > action >= 0 and self.is_cell_empty(action)
 
     def is_terminal(self, player):
         """Checks if the game has reached a terminal state for the specified player using BFS.
@@ -222,7 +202,7 @@ class HexGame:
             [
                 (r, c, [(r, c)])
                 for r, c in start_cells
-                if self.state[self.row_col_to_action_index(r, c)] == player
+                if self.board[self.row_col_to_action_index(r, c)] == player
             ]
         )
 
@@ -241,7 +221,7 @@ class HexGame:
                 (r + 1, c - 1),
             ]:
                 if 0 <= nr < self.num_rows and 0 <= nc < self.num_cols and (nr, nc) not in visited:
-                    if self.state[self.row_col_to_action_index(nr, nc)] == player:
+                    if self.board[self.row_col_to_action_index(nr, nc)] == player:
                         queue.append((nr, nc, path + [(nr, nc)]))
                         visited.add((nr, nc))
 

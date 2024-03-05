@@ -90,7 +90,7 @@ class HexUI:
 
                 cell = self.game.row_col_to_action_index(row, col)
                 symbol = self.cell_empty if self.game.is_cell_empty(cell) else self.cell_filled
-                cell_state = self.game.state[cell]
+                cell_state = self.game.board[cell]
                 if win_path and (row, col) in win_path:
                     color_pair = self.color_win_path
                 elif row == current_row and col == current_col and win_path is None:
