@@ -2,7 +2,7 @@ import curses
 from typing import Any
 
 from hexterm.game_states import MainMenu
-from hexterm.hex_game import HexGame
+from hexterm.hex_game import HexGame, STATE_EMPTY, STATE_PLAYERS
 
 
 class HexUI:
@@ -54,8 +54,8 @@ class HexUI:
         self.screen_height, self.screen_width = stdscr.getmaxyx()
 
         # calculate minimum terminal size needed to check if the terminal is too small
-        min_height = self.game.y_size + 7
-        min_width = 2 * ((self.game.x_size + 2) * 2 + self.game.y_size + 2)
+        min_height = self.game.num_rows + 7
+        min_width = 2 * ((self.game.num_cols + 2) * 2 + self.game.num_rows + 2)
 
         if self.screen_height < min_height or self.screen_width < min_width:
             stdscr.clear()
@@ -69,18 +69,18 @@ class HexUI:
             return
 
         # Calculate the starting position to center the board
-        start_y = (self.screen_height - self.game.y_size) // 2
-        start_x = (self.screen_width - ((2 * self.game.x_size) + 4 + self.game.y_size)) // 2
+        start_y = (self.screen_height - self.game.num_rows) // 2
+        start_x = (self.screen_width - ((2 * self.game.num_cols) + 4 + self.game.num_rows)) // 2
 
         stdscr.clear()
         # Draw the top row for showing player color
-        for col in range(self.game.x_size):
+        for col in range(self.game.num_cols):
             pos_y = start_y
             pos_x = start_x + (col + 1) * 2
             stdscr.addstr(pos_y, pos_x, self.cell_filled, self.color_player_1)
 
-        for row in range(self.game.y_size):
-            for col in range(self.game.x_size):
+        for row in range(self.game.num_rows):
+            for col in range(self.game.num_cols):
                 pos_y = start_y + (row + 1)
                 pos_x = start_x + (col + 1) * 2 + (row + 1)
 
@@ -88,39 +88,39 @@ class HexUI:
                 if col == 0:
                     stdscr.addstr(pos_y, pos_x - 2, self.cell_filled, self.color_player_2)
 
-                cell_value = self.game.row_col_to_index(row, col)
-                symbol = self.cell_empty if self.game.board[cell_value] == 0 else self.cell_filled
-                cell_state = self.game.board[cell_value]
+                cell = self.game.row_col_to_action_index(row, col)
+                symbol = self.cell_empty if self.game.is_cell_empty(cell) else self.cell_filled
+                cell_state = self.game.state[cell]
                 if win_path and (row, col) in win_path:
                     color_pair = self.color_win_path
                 elif row == current_row and col == current_col and win_path is None:
                     # Highlight the current cell
-                    if cell_state != 0 and display_invalid:
+                    if cell_state != STATE_EMPTY and display_invalid:
                         color_pair = self.color_invalid
                     else:
                         color_pair = (
                             self.color_player_1
-                            if self.game.player_to_play == 1
+                            if self.game.current_player == STATE_PLAYERS[1]
                             else self.color_player_2
                         )
-                elif cell_state == 0:
+                elif cell_state == STATE_EMPTY:
                     color_pair = self.color_neutral
-                elif cell_state == 1:
+                elif cell_state == STATE_PLAYERS[1]:
                     color_pair = self.color_player_1
-                elif cell_state == 2:
+                elif cell_state == STATE_PLAYERS[2]:
                     color_pair = self.color_player_2
                 else:
                     raise ValueError(f"Invalid cell state: {cell_state}")
                 stdscr.addstr(pos_y, pos_x, symbol, color_pair)
 
                 # Draw the rightmost column for showing player color
-                if col == self.game.x_size - 1:
+                if col == self.game.num_cols - 1:
                     stdscr.addstr(pos_y, pos_x + 2, self.cell_filled, self.color_player_2)
 
         # Draw the bottom row for showing player color
-        for col in range(self.game.x_size):
-            pos_y = start_y + (self.game.y_size + 1)
-            pos_x = start_x + (col + 1) * 2 + (self.game.y_size + 1)
+        for col in range(self.game.num_cols):
+            pos_y = start_y + (self.game.num_rows + 1)
+            pos_x = start_x + (col + 1) * 2 + (self.game.num_rows + 1)
             stdscr.addstr(pos_y, pos_x, self.cell_filled, self.color_player_1)
 
     def run(self, stdscr: Any) -> None:

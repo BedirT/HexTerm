@@ -66,7 +66,7 @@ class GameInitMenu(GameState):
                 self.next_state = MainMenu(self.hex_ui)
             else:
                 size = int(self.menu_items[list(self.menu_items.keys())[self.highlighted]])
-                self.hex_ui.game = HexGame(size)
+                self.hex_ui.game = HexGame(num_cols=size, num_rows=size)
                 self.next_state = Gameplay(self.hex_ui)
             return True
         return False
@@ -106,23 +106,24 @@ class Gameplay(GameState):
             )
         else:
             self.current_row, self.current_col = 0, 0
-        self.player = self.hex_ui.game.player_to_play
+        self.player = self.hex_ui.game.current_player
 
     def process_input(self, key: int) -> bool:
         if key == curses.KEY_UP and self.current_row > 0:
             self.current_row -= 1
-        elif key == curses.KEY_DOWN and self.current_row < self.hex_ui.game.y_size - 1:
+        elif key == curses.KEY_DOWN and self.current_row < self.hex_ui.game.num_rows - 1:
             self.current_row += 1
         elif key == curses.KEY_LEFT and self.current_col > 0:
             self.current_col -= 1
-        elif key == curses.KEY_RIGHT and self.current_col < self.hex_ui.game.x_size - 1:
+        elif key == curses.KEY_RIGHT and self.current_col < self.hex_ui.game.num_cols - 1:
             self.current_col += 1
         elif key in [curses.KEY_ENTER, ord("\n"), ord(" ")]:
-            result, win_path = self.hex_ui.game.action(self.current_row, self.current_col)
-            if result == -1:  # Invalid move
+            action = self.hex_ui.game.row_col_to_action_index(self.current_row, self.current_col)
+            _, _, done, extra = self.hex_ui.game.step(action)
+            if done == -1:  # Invalid move
                 return False
-            elif result > 0:
-                self.next_state = WinEffect(self.hex_ui, win_path, result)
+            elif done > 0:
+                self.next_state = WinEffect(self.hex_ui, extra['win_path'], done)
                 return True
         return False
 

@@ -5,7 +5,7 @@ from hexterm.hex_ui import HexUI
 
 
 def main(stdscr):
-    game = HexGame(size=11)
+    game = HexGame()
     ui = HexUI(game)
     ui.run(stdscr)
 
